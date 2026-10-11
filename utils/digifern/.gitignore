@@ -1,0 +1,5 @@
+# Runtime state — created on first run, not source.
+state.json
+state.json.tmp
+*.pyc
+__pycache__/

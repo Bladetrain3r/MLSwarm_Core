@@ -1,0 +1,27 @@
+{
+  "host": "127.0.0.1",
+  "port": 8787,
+  "embedding_url": "http://127.0.0.1:11434/v1/embeddings",
+  "embedding_model": "embeddinggemma:latest",
+  "state_file": "./state.json",
+  "update_rate": 0.1,
+  "max_text_chars": 12000,
+  "max_body_bytes": 65536,
+  "embedding_timeout": 30,
+  "motion_sensitivity": 300,
+  "recent_event_limit": 256,
+  "axes": {
+    "moisture": {
+      "positive": "humid wet flowing saturated rain-soaked",
+      "negative": "parched dry brittle dusty waterless"
+    },
+    "nutrition": {
+      "positive": "nourished fertile rich abundant flourishing",
+      "negative": "depleted barren starved exhausted infertile"
+    },
+    "vigor": {
+      "positive": "energetic growing lively resilient vigorous",
+      "negative": "dormant wilting weak fading stagnant"
+    }
+  }
+}

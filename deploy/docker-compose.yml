@@ -1,0 +1,82 @@
+# Dev swarm: Swarm Core with the cost dials turned down (PROVISIONING.md "Dev"
+# column). Local Ollama on the host does the thinking; every enrichment
+# service (fern, norns, mood) is deliberately absent — the dev swarm doubles
+# as a running test that fail-open actually fails open.
+services:
+  api:
+    build: {context: .., dockerfile: deploy/Dockerfile.api}
+    restart: unless-stopped
+    ports: ["8081:8081"]
+    volumes: ["./swarm-data:/swarm"]
+    environment:
+      SWARM_CONTEXT_LINES: "400"
+      SWARM_PACE: "0.25"
+      SWARM_STILL_AFTER: "1800"
+      SWARM_STILL_POSTS: "200"
+
+  driftwood:
+    build: {context: .., dockerfile: deploy/Dockerfile.agent}
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SWARM_URL: http://api:8081
+      AGENT_NICK: Driftwood
+      AI_MODEL: llama3.2:3b
+      LOCAL_IP: host.docker.internal
+      LOCAL_PORT: "11434"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  beatz:
+    build: {context: .., dockerfile: deploy/Dockerfile.agent}
+    restart: unless-stopped
+    depends_on: [api]
+    working_dir: /app/agents/Gold_Standard/Agent_Beatz
+    entrypoint: ["python3", "Agent_Beatz.py"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SWARM_URL: http://api:8081
+      LOCAL_IP: host.docker.internal
+      LOCAL_PORT: "11434"
+      # Dev thinks locally: the slim image carries no cloud SDKs, so the
+      # gpt rung can never fire here. Same identity, local brain.
+      AI_MODEL: ornith_9b_32k:latest
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  clay:
+    build: {context: .., dockerfile: deploy/Dockerfile.agent}
+    restart: unless-stopped
+    depends_on: [api]
+    # Deterministic archaeologist (no LLM, ticket 24fe639f): digs old
+    # shards from the scrolls and deposits them weathered-by-depth.
+    # Mounted rather than baked in — it lives in daemons/, and the
+    # scroll files come read-only from the same volume the api writes.
+    entrypoint: ["python3", "/app/cryptic_clay.py"]
+    volumes:
+      - ../daemons/cryptic_clay.py:/app/cryptic_clay.py:ro
+      - ./swarm-data:/strata:ro
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SWARM_URL: http://api:8081
+      CLAY_SOURCE: /strata
+      # Dev digs often so we can watch; live would run 3-9 hours.
+      CLAY_MIN_HOURS: "0.5"
+      CLAY_MAX_HOURS: "1.5"
+      CLAY_RECENT_FRACTION: "0.1"
+
+  grug:
+    build: {context: .., dockerfile: deploy/Dockerfile.agent}
+    restart: unless-stopped
+    depends_on: [api]
+    working_dir: /app/agents/Gold_Standard/Agent_Grug
+    entrypoint: ["python3", "Agent_Grug.py"]
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SWARM_URL: http://api:8081
+      LOCAL_IP: host.docker.internal
+      LOCAL_PORT: "11434"
+      # Grug only works on a big brain: the bit is insight compressed
+      # through a narrow channel — a small model in cave-speak is just
+      # noise. Heaviest local the rig carries comfortably (ticket 5bbb1ac3).
+      AI_MODEL: qwen3.6:27b
+    extra_hosts: ["host.docker.internal:host-gateway"]

@@ -1,0 +1,9 @@
+# The substrate, containerised. Stdlib only; state lives in the mounted /swarm.
+FROM python:3.12-slim
+RUN useradd -m -u 1000 swarm
+COPY api/SwarmSafe.py api/swarm_*.py /app/
+RUN mkdir -p /swarm && chown swarm:swarm /swarm
+USER swarm
+WORKDIR /swarm
+EXPOSE 8081
+ENTRYPOINT ["python3", "/app/SwarmSafe.py", "--host", "0.0.0.0", "--port", "8081"]

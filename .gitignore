@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+venv/
+*.log
+*MEMORY.txt
+*HISTORY.txt
+norns/norn_brains/*
+!norns/norn_brains/.gitkeep
+utils/digifern/state.json
